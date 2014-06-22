@@ -2,10 +2,10 @@
 ### Practical Machine Learning  
 
 ## Executive Summary
-Submission for the predicted answers
-##  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
-##  B  A  B  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B 
-## Levels: A B C D E
+Submission for the predicted answers  
+##  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20   
+##  B  A  B  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B   
+## Levels: A B C D E  
 
 ## Background
 Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset). 
@@ -44,12 +44,15 @@ nzv <- nearZeroVar(traindata)
 trainnzv <- traindata[-nzv]
 testnzv <- testdata[-nzv]
 pmltestnzv <- pmltest[-nzv]
+
 dim(trainnzv)
 dim(testnzv)
 dim(pmltestnzv)
 
 ftridx <- which(lapply(trainnzv,class) %in% c('numeric'))
 trainnzv1 <- preProcess(trainnzv[,ftridx], method=c('knnImpute'))
+ftridx
+trainnzv1
 
 pred1 <- predict(trainnzv1, trainnzv[,ftridx])
 predtrain <- cbind(trainnzv$classe,pred1)
@@ -62,9 +65,11 @@ names(predtest)[1] <- 'classe'
 predtest[is.na(predtest)] <- 0
 
 predpmltest <- predict(trainnzv1,pmltestnzv[,ftridx] )
-names(predpmltest)[1] <- 'classe'
-predpmltest[is.na(predpmltest)] <- 0
 
+
+dim(predtrain)
+dim(predtest)
+dim(predpmltest)
 #dim(trainnzv1)
 #str(trainnzv1)
 ```
@@ -74,7 +79,7 @@ predpmltest[is.na(predpmltest)] <- 0
 #mod2 <- train(classe ~ ., method="rf",data=predtrain,trControl=trainControl(method="cv"),number=3)
 #mod1 <- glm(classe ~ .,predtrain)
 #mod1 <- glm.fit(classe ~ .,predtrain)
-model <- randomForest(classe~.,data=predtrain,ntree = 500, mtry = 32)
+model <- randomForest(classe~.,data=predtrain)
 
 predtrain1 <- predict(model, predtrain) 
 print(table(predtrain1, predtrain$classe))
@@ -86,24 +91,24 @@ print(table(predtest1, predtest$classe))
 #qplot(table(predtest1, predtest$classe))
 
 str(predpmltest)
-#predanswers <- predict(model, predpmltest) 
-#predanswers
+predanswers <- predict(model, predpmltest) 
+predanswers
 
 ```
 
 ## Results
 ```{r results,cache=TRUE}
 
-#predanswers <- predict(model, predpmltest) 
-#predanswers
-# pml_write_files = function(x){
-#  n = length(x)
-#  for(i in 1:n){
-#    filename = paste0("problem_id_",i,".txt")
-#    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
-#  }
-#}
-#pml_write_files(as.character(answers))
+predanswers <- predict(model, predpmltest) 
+predanswers
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+pml_write_files(as.character(predanswers))
 
 ```
 
