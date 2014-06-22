@@ -86,8 +86,8 @@ print(table(predtest1, predtest$classe))
 #qplot(table(predtest1, predtest$classe))
 
 str(predpmltest)
-predanswers <- predict(model, predpmltest) 
-predanswers
+#predanswers <- predict(model, predpmltest) 
+#predanswers
 
 ```
 
