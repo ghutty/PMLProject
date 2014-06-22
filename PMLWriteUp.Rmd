@@ -1,0 +1,113 @@
+#  WriteUp Project  
+### Practical Machine Learning  
+
+## Executive Summary
+Submission for the predicted answers
+##  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
+##  B  A  B  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B 
+## Levels: A B C D E
+
+## Background
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset). 
+
+## Data Processing
+The training data for this project are available here:  
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv  
+The test data are available here:  
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv  
+
+```{r loaddata,cache=TRUE,results='hide'}
+#setInternet2(TRUE)
+#download.file(url = "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", destfile = "pml-training.csv")
+#download.file(url = "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", destfile = "pml-testing.csv")
+pmltrain <- read.csv('pml-training.csv')
+pmltest <- read.csv('pml-testing.csv')
+```
+
+## Exploratory Data Analysis
+
+### Create training, test and validation sets
+```{r sets,cache=TRUE}
+library(caret)
+library(ggplot2)
+library(lattice)
+library(kernlab)
+library(randomForest)
+#str(pmltrain)
+#str(pmltest)
+
+trainidx <- createDataPartition(pmltrain$classe,p=.9,list=FALSE)
+traindata = pmltrain[trainidx,]
+testdata = pmltrain[-trainidx,]
+set.seed(32768)
+nzv <- nearZeroVar(traindata)
+trainnzv <- traindata[-nzv]
+testnzv <- testdata[-nzv]
+pmltestnzv <- pmltest[-nzv]
+dim(trainnzv)
+dim(testnzv)
+dim(pmltestnzv)
+
+ftridx <- which(lapply(trainnzv,class) %in% c('numeric'))
+trainnzv1 <- preProcess(trainnzv[,ftridx], method=c('knnImpute'))
+
+pred1 <- predict(trainnzv1, trainnzv[,ftridx])
+predtrain <- cbind(trainnzv$classe,pred1)
+names(predtrain)[1] <- 'classe'
+predtrain[is.na(predtrain)] <- 0
+
+pred2 <- predict(trainnzv1, testnzv[,ftridx])
+predtest <- cbind(testnzv$classe, pred2)
+names(predtest)[1] <- 'classe'
+predtest[is.na(predtest)] <- 0
+
+predpmltest <- predict(trainnzv1,pmltestnzv[,ftridx] )
+names(predpmltest)[1] <- 'classe'
+predpmltest[is.na(predpmltest)] <- 0
+
+#dim(trainnzv1)
+#str(trainnzv1)
+```
+### Modeling
+```{r modeling,cache=TRUE}
+#mod1 <- train(classe ~ ., method="glm",data=predtrain)
+#mod2 <- train(classe ~ ., method="rf",data=predtrain,trControl=trainControl(method="cv"),number=3)
+#mod1 <- glm(classe ~ .,predtrain)
+#mod1 <- glm.fit(classe ~ .,predtrain)
+model <- randomForest(classe~.,data=predtrain,ntree = 500, mtry = 32)
+
+predtrain1 <- predict(model, predtrain) 
+print(table(predtrain1, predtrain$classe))
+training <- as.data.frame(table(predtrain1, predtrain$classe))
+#qplot(training)
+
+predtest1 <- predict(model, predtest) 
+print(table(predtest1, predtest$classe))
+#qplot(table(predtest1, predtest$classe))
+
+str(predpmltest)
+predanswers <- predict(model, predpmltest) 
+predanswers
+
+```
+
+## Results
+```{r results,cache=TRUE}
+
+#predanswers <- predict(model, predpmltest) 
+#predanswers
+# pml_write_files = function(x){
+#  n = length(x)
+#  for(i in 1:n){
+#    filename = paste0("problem_id_",i,".txt")
+#    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+#  }
+#}
+#pml_write_files(as.character(answers))
+
+```
+
+
+
+
+
